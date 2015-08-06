@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:task="http://www.springframework.org/schema/task"
+    xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context.xsd
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+      http://www.springframework.org/schema/rabbit
+      http://www.springframework.org/schema/rabbit/spring-rabbit-1.4.xsd
+      ">
+ 
+    <!-- 扫描文件（自动将servicec层注入） -->
+    <context:component-scan base-package="com.yihg.rabbitmq.producer" />
+    <!-- 连接服务配置 -->
+ <!--
+     <rabbit:connection-factory id="connectionFactory"  addresses="192.168.0.82:56720" username="admin" password="admin" publisher-returns="true"/>
+  -->
+    <rabbit:connection-factory id="connectionFactory"  addresses="192.168.100.222:5672" username="admin" password="yihg"   />
+    
+    <rabbit:admin connection-factory="connectionFactory" />
+    
+    <!-- queue 队列声明 -->
+    <rabbit:queue id="spr_queue" durable="true" auto-delete="false"
+        exclusive="false" name="spr_queue" />
+ 
+    <!-- exchange queue binging key 绑定 -->
+    <rabbit:direct-exchange name="spr_exchange"
+        durable="true" auto-delete="false" id="spr_exchange">
+        <rabbit:bindings>
+            <rabbit:binding queue="spr_queue" key="queue_one_key" />
+        </rabbit:bindings>
+    </rabbit:direct-exchange>
+ 
+    <rabbit:template exchange="spr_exchange" id="amqpTemplate"
+        connection-factory="connectionFactory" />
+ 
+    <rabbit:listener-container
+        connection-factory="connectionFactory" acknowledge="auto">
+        <rabbit:listener queues="spr_queue" ref="queueOneLitener" />
+    </rabbit:listener-container>
+ 
+    <bean id="queueOneLitener" class="com.yihg.rabbitmq.listener.RabbitMqListener" />
+
+    
+    
+</beans>
